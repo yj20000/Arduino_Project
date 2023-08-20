@@ -1,0 +1,109 @@
+#include <SoftwareSerial.h>
+SoftwareSerial BT(2,3);
+
+#define LED A0
+#define buzzer A1
+
+int A_1A = 4, A_1B = 5, A_1E = 6;
+int B_1A = 7, B_1B = 8, B_1E = 9;
+
+char cmd = "";
+int Speed = 150;
+bool state = true;
+
+void setup() {
+  BT.begin(9600);
+  pinMode(A_1A, OUTPUT);
+  pinMode(A_1B, OUTPUT);
+  pinMode(A_1E, OUTPUT);
+  pinMode(B_1A, OUTPUT);
+  pinMode(B_1B, OUTPUT);
+  pinMode(B_1E, OUTPUT);
+  pinMode(LED, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  
+  Stop();
+  digitalWrite(LED, state);
+  tone(buzzer,1000,500);
+}
+
+void forward() { // 전진
+  digitalWrite(A_1A, LOW);
+  digitalWrite(A_1B, HIGH);
+  digitalWrite(B_1A, HIGH);
+  digitalWrite(B_1B, LOW);
+  analogWrite(A_1E, Speed);
+  analogWrite(B_1E, Speed);
+}
+
+void backward() { //후진
+  digitalWrite(A_1A, HIGH);
+  digitalWrite(A_1B, LOW);
+  digitalWrite(B_1A, LOW);
+  digitalWrite(B_1B, HIGH);
+  analogWrite(A_1E, Speed);
+  analogWrite(B_1E, Speed);
+}
+
+void left() { // 좌회전
+  digitalWrite(A_1A, HIGH);
+  digitalWrite(A_1B, LOW);
+  digitalWrite(B_1A, HIGH);
+  digitalWrite(B_1B, LOW);
+  analogWrite(A_1E, Speed);
+  analogWrite(B_1E, Speed);
+}
+
+void right() { // 우회전
+  digitalWrite(A_1A, LOW);
+  digitalWrite(A_1B, HIGH);
+  digitalWrite(B_1A, LOW);
+  digitalWrite(B_1B, HIGH);
+  analogWrite(A_1E, Speed);
+  analogWrite(B_1E, Speed);
+}
+
+void Stop() { //정지
+  analogWrite(A_1E, 0);
+  analogWrite(B_1E, 0);
+}
+
+void loop() {
+  while(BT.available()) {
+    cmd = (char)BT.read();
+    delay(5);
+    
+    tone(buzzer, 1000, 50);
+    state = !state;
+    digitalWrite(LED, state);
+    switch (cmd) {
+      case 'f': // forward
+        forward();
+        break;
+      case 'b': // backward
+        backward();
+        break;
+      case 'r': // right
+         right();
+        delay(200);
+        Stop();
+        break;
+      case 'l': // left
+        left();
+        delay(200);
+        Stop();
+        break;
+      case 's': // stop
+        Stop();
+        break;
+      case 'u': // speed up
+        Speed += 5;
+        if (Speed > 255) Speed = 255;
+        break;
+      case 'd': // d = speed down
+        Speed -= 5;
+        if (Speed < 0) Speed = 0;
+        break;
+      }
+  }
+}
